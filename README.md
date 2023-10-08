@@ -3,9 +3,13 @@ This tool is designed to work with fastq sequences, amino acid sequences, DNA an
 
 ## Usage  
 Depending on your data, you can use three functions: `filter_seqs`, `amino_acid_tools`, `run_dna_rna_tools`.
+
 If you are working with fastq sequences, you call the `filter_seqs` function, that takes as input a dictionary containing an unlimited number of fastq sequences, filtering bounds on gz composition, length, and average read quality. The function then filters all sequences in the dictionary. Sequences can contain both uppercase and lowercase letters. The result of the function is a dictionary with filtered sequences.
+
 If you are working with amino acid sequences, you call the `amino_acid_tools` function, which takes as input an arbitrary number of arguments with amino acid sequences (str) as well as the name of the procedure to be performed (it is always the last argument, str). The command then performs the specified action on all the given sequences. If a single sequence is submitted, a string with the result is returned. If multiple sequences are supplied, a list of strings is returned.
+
 If you are working with dna or rna sequences, you call `run_dna_rna_tools` takes as input an arbitrary number of arguments with DNA or RNA sequences (str) and the name of the procedure to be performed (it is always the last argument, str). After that the command performs the specified action on all the given sequences. If one sequence is submitted, a string with the result is returned. If several sequences are submitted, a list of strings is returned.
+
 For `amino_acid_tools` and `run_dna_rna_tools` input sequences can contain both uppercase and lowercase letters, but the last argument with the function name must match the possible functions.
 
 ### Remark
@@ -32,6 +36,7 @@ For `amino_acid_tools` and `run_dna_rna_tools` input sequences can contain both 
 
 #### For `amino_acid_tools` function
 The following options for aminoacid sequence processing are available at the moment:
+
 - **molecular_weight**: calculate the molecular weight of the amino acid chain in Da, according to the average amino acid residues molecular masses rounded to 1 or 2 decimal places.
 - **three_letter_code**: converts standard single letter translations to three letter translations.
 - **show_length**: count the overall number of amino acids in the given.
@@ -60,9 +65,10 @@ EXAMPLE_FASTQ = {
 filter_seqs(seqs = EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34)
 ```
 
-Input: EXAMPLE_FASTQ, gc_bounds' = (20, 80), length_bounds = (0, 89), quality_threshold = 34
-Output: '{'@SRX079804:1:SRR292678:1:1101:190136:190136': ('GAACCTTCTTTAATTTATCTAGAGCCCAAATTTTAGTCAATCTATCAACTAAAATACCTACTGCTACTACAAGTATT',
-'DACD@BEECEDE.BEDDDDD,>:@>EEBEEHEFEHHFFHH?FGBGFBBD77B;;C?FFFFGGFED.BBABBG@DBBE')}'
+Input: EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34
+
+Output: {'@SRX079804:1:SRR292678:1:1101:190136:190136': ('GAACCTTCTTTAATTTATCTAGAGCCCAAATTTTAGTCAATCTATCAACTAAAATACCTACTGCTACTACAAGTATT',
+'DACD@BEECEDE.BEDDDDD,>:@>EEBEEHEFEHHFFHH?FGBGFBBD77B;;C?FFFFGGFED.BBABBG@DBBE')}
 
 ### For `amino_acid_tools` function
 Below is an example of processing an amino acid sequence.
@@ -74,7 +80,8 @@ amino_acid_tools('EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'molecular_weig
 ```
 
 Input: 'EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'molecular_weight'
-Output: '[1228.66, 1447.8400000000001, 1224.6399999999999]'
+
+Output: [1228.66, 1447.8400000000001, 1224.6399999999999]
 
 #### Using the function to convert one-letter translations to three-letter translations
 
@@ -83,7 +90,8 @@ amino_acid_tools('EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'three_letter_c
 ```
 
 Input: 'EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'three_letter_code'
-Output: '['GluGlyValIleMetSerGluLeuLysLeuLys', 'ProLeuProLysValGluLeuProProAspPheValAsp', 'AspValIleGlyIleSerIleLeuGlyLysGluVal']'
+
+Output: ['GluGlyValIleMetSerGluLeuLysLeuLys', 'ProLeuProLysValGluLeuProProAspPheValAsp', 'AspValIleGlyIleSerIleLeuGlyLysGluVal']
 
 #### Using the function to counts the number of amino acids in the given sequence
 
@@ -92,7 +100,8 @@ amino_acid_tools('EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'show_length')
 ```
 
 Input: 'EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'show_length'
-Output: '[11, 13, 12]'
+
+Output: [11, 13, 12]
 
 #### Using the function to determine the predominant secondary structure
 
@@ -100,7 +109,8 @@ Output: '[11, 13, 12]'
 amino_acid_tools('EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'folding')  
 ```
 Input: 'EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'folding'
-Output: '['alfa_helix', 'equally', 'equally']'
+
+Output: ['alfa_helix', 'equally', 'equally']
 
 #### Using the function to estimate relative charge
 
@@ -109,7 +119,8 @@ amino_acid_tools('EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'seq_charge')
 ```
 
 Input: 'EGVIMSELKLK', 'PLPKvelPPDFVD', 'DVIGISILGKEV', 'seq_charge'
-Output: '['neutral', 'negative', 'negative']'
+
+Output: ['neutral', 'negative', 'negative']
 
 #### For `run_dna_rna_tools` function
 Below is an example of processing DNA and RNA sequences.
@@ -119,31 +130,36 @@ Below is an example of processing DNA and RNA sequences.
 run_dna_rna_tools('ATGCccT', 'UGACU', 'reverse')
 ```
 Input: 'ATGCccT', 'UGACT', 'reverse')
-Output: '['TccCGTA', 'UCAGU']'
+
+Output: ['TccCGTA', 'UCAGU']
 
 #### Using the function to transcribe sequence
 ```shell 
 run_dna_rna_tools('ATGCccT', 'UGACU', 'reverse')
 ```
 Input: 'ATGCccT', 'UGACT', 'reverse')
-Output: '['AUGCccU', 'UGACU']'
+
+Output: ['AUGCccU', 'UGACU']
 
 #### Using the function to complement sequence
 ```shell 
 run_dna_rna_tools('ATGCccT', 'UGACU', 'reverse')
 ```
 Input: 'ATGCccT', 'UGACT', 'complement')
-Output: '['TACGggA', 'ACUGA']'
+
+Output: ['TACGggA', 'ACUGA']
 
 #### Using the function to reverse and complement sequence
 ```shell 
 run_dna_rna_tools('ATGCccT', 'UGACU', 'reverse')
 ```
 Input: 'ATGCccT', 'UGACT', 'reverse')
-Output: '['AggGCAT', 'AGUCA']'
+
+Output: ['AggGCAT', 'AGUCA']
 
 ## Requirements
 You need to import modules:
+
 - import modules.fastq_filtering as ff
 - import modules.aminoacid_functions as af
 - import modules.dna_rna_functions as drf
