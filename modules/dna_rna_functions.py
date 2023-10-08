@@ -1,3 +1,7 @@
+DNA_COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'a': 't', 't': 'a', 'c': 'g', 'g': 'c'}
+RNA_COMPLEMENT = {'A': 'U', 'U': 'A', 'C': 'G', 'G': 'C', 'a': 'u', 'u': 'a', 'c': 'g', 'g': 'c'}
+
+
 def dna_or_rna_only(seqs):
     """
         The function leaves only DNA and RNA sequences
@@ -48,10 +52,6 @@ def complement(seq):
                 (str) complementary sequence
     """
     complement_seq = []
-    DNA_COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 
-                      'a': 't', 't': 'a', 'c': 'g', 'g': 'c'}
-    RNA_COMPLEMENT = {'A': 'U', 'U': 'A', 'C': 'G', 'G': 'C', 
-                      'a': 'u', 'u': 'a', 'c': 'g', 'g': 'c'}
     if 'U' in set(seq):
         using_dict = RNA_COMPLEMENT
     else:
