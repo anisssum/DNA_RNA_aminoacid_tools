@@ -29,7 +29,7 @@ def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality
                 If you supply a tuple of more than 2 values for the gc_bounds and length_bounds arguments,
                 you will receive the errors "Incorrect gc_bounds input" and "Incorrect length_bounds input" respectively.
     """
-    filtered_dict = read_fastq(input_path)
+    filtered_dict = ff.read_fastq(input_path)
     if type(gc_bounds) is tuple and len(gc_bounds) == 2:
         min_gc_bound = gc_bounds[0]
         max_gc_bound = gc_bounds[1]
@@ -63,7 +63,7 @@ def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality
                 func(filtered_dict, key, func_dict[func][0])
     if output_filename == '':
         output_filename = input_path.split('/')[-1]
-    return save_fastq(filtered_dict, output_filename)
+    return ff.save_fastq(filtered_dict, output_filename)
 
 
 def amino_acid_tools(*args: str):
