@@ -17,11 +17,9 @@ def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality
             - quality_threshold - threshold value of average read quality for filtering, default is 0 (phred33 scale).
                         Reads with average quality across all nucleotides below the threshold are discarded.
             - output_filename - name of the file with the filtering result, if not specified, the name of the input file is assigned by default.
+                        Important: specify the file extension.
         Example input:
-            EXAMPLE_FASTQ = {
-                # 'name' : ('sequence', 'quality')
-                '@SRX07...': ('ACAGCAACAT', 'FGGGFGGGFG')}
-            filter_seqs(seqs = EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34)
+            filter_seqs(seqs = 'example_fastq.fastq', gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34), output_filename = 'my_out_file.fastq'
         Return:
             The function returns a file consisting of only those sequences that satisfy all conditions.
             It puts this file into the "fastq_filtrator_resuls" folder and creates it, if it does not exist.
