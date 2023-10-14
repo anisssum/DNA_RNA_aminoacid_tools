@@ -2,14 +2,12 @@ import modules.fastq_filtering as ff
 import modules.aminoacid_functions as af
 import modules.dna_rna_functions as drf
 
-def filter_seqs(seqs: dict, gc_bounds: tuple, length_bounds: tuple, quality_threshold = 0):
+def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality_threshold = 0, output_filename = ''):
     """
     Performs functions for working with fastq.
         Parameters:
-            - seqs - a dictionary with an unlimited number of fastq sequences.
-                        The structure is as follows. Key - string, sequence name.
-                        The value is a tuple of two strings: sequence and quality.
-                        A DNA sequence can consist of either uppercase or lowercase letters.
+            - input_path - takes as input the path to the FASTQ-file.
+                        A DNA or RNA sequences can consist of either uppercase or lowercase letters.
             - gc_bounds - GC composition interval (in percent) for filtering, by default it is (0, 100).
                         If you pass one number as an argument, it is considered to be the upper limit.
                         Examples: gc_bounds = (20, 80) - save only reads with GC content from 20 to 80%,
@@ -18,20 +16,22 @@ def filter_seqs(seqs: dict, gc_bounds: tuple, length_bounds: tuple, quality_thre
                         but by default it is equal to (0, 2**32).
             - quality_threshold - threshold value of average read quality for filtering, default is 0 (phred33 scale).
                         Reads with average quality across all nucleotides below the threshold are discarded.
+            - output_filename - name of the file with the filtering result, if not specified, the name of the input file is assigned by default.
         Example input:
             EXAMPLE_FASTQ = {
                 # 'name' : ('sequence', 'quality')
                 '@SRX07...': ('ACAGCAACAT', 'FGGGFGGGFG')}
             filter_seqs(seqs = EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34)
         Return:
-            The function returns a similar dictionary consisting only of those sequences that pass all the conditions.
+            The function returns a file consisting of only those sequences that satisfy all conditions.
+            It puts this file into the "fastq_filtrator_resuls" folder and creates it, if it does not exist.
             All described intervals include both upper and lower boundaries.
             Depending on the function being performed, the following returns will occur:
                 If the sequences in the dictionary are RNA, then there will be no filtering by gc composition.
                 If you supply a tuple of more than 2 values for the gc_bounds and length_bounds arguments,
                 you will receive the errors "Incorrect gc_bounds input" and "Incorrect length_bounds input" respectively.
     """
-    filtered_dict = seqs
+    filtered_dict = read_fastq(input_path)
     if type(gc_bounds) is tuple and len(gc_bounds) == 2:
         min_gc_bound = gc_bounds[0]
         max_gc_bound = gc_bounds[1]
@@ -63,7 +63,9 @@ def filter_seqs(seqs: dict, gc_bounds: tuple, length_bounds: tuple, quality_thre
                 func(filtered_dict, key, func_dict[func][0], func_dict[func][1])
             else:
                 func(filtered_dict, key, func_dict[func][0])
-    return filtered_dict
+    if output_filename == '':
+        output_filename = input_path.split('/')[-1]
+    return save_fastq(filtered_dict, output_filename)
 
 
 def amino_acid_tools(*args: str):
