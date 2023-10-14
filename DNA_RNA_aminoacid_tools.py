@@ -19,7 +19,7 @@ def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality
             - output_filename - name of the file with the filtering result, if not specified, the name of the input file is assigned by default.
                         Important: specify the file extension.
         Example input:
-            filter_seqs(seqs = 'example_fastq.fastq', gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34), output_filename = 'my_out_file.fastq'
+            filter_seqs(seqs = 'example_fastq.fastq', gc_bounds = (20, 80), length_bounds = (0, 89), quality_threshold = 34), output_filename = 'my_out_file'
         Return:
             The function returns a file consisting of only those sequences that satisfy all conditions.
             It puts this file into the "fastq_filtrator_resuls" folder and creates it, if it does not exist.
