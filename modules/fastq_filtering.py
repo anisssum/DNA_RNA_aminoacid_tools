@@ -4,6 +4,28 @@ DICT_TRESHOLD = {33: 0, 34: 1, 35: 2, 36: 3, 37: 4, 38: 5, 39: 6, 40: 7, 41: 8, 
                  64: 31, 65: 32, 66: 33, 67: 34, 68: 35, 69: 36, 70: 37, 71: 38, 72: 39, 73: 40}
 
 
+def read_fastq(file):
+    """
+        The function reads the input file and writes it to the dictionary
+            Parameters:
+                file - path to the file to be turned into a dictionary
+        Return:
+            dictionary for main function's work
+    """
+    with open(file) as fasta_file:
+        fasta_list = fasta_file.readlines()
+    dictionary = {}
+    inds=[]
+    i=0
+    while i < len(fasta_list):
+        inds.append(i)
+        i+=4
+    for index, line in enumerate(fasta_list):
+        if index in inds:
+            dictionary[line.replace('\n', '')] = [fasta_list[index+1].replace('\n', ''), fasta_list[index+3].replace('\n', '')]
+    return dictionary
+
+
 def filter_gc(filtered_dict, key, min_gc_bound, max_gc_bound):
     """
         The function filters sequences by gc composition
@@ -56,3 +78,21 @@ def filter_quality_threshold(filtered_dict, key, quality_threshold):
     if mean_thresholds < quality_threshold:
         del filtered_dict[key]
     return filtered_dict
+
+
+def save_fastq(filtered_dict, output_filename):
+    """
+        function saves the dictionary with the result to a file
+            Parameters:
+                filtered_dict - a dictionary with sequences that we filter
+                output_filename - destination file name
+        Return:
+            saves a file named output_filename to the fastq_filtrator_resuls folder and creates it if it does not exist
+    """
+    import os
+    if not os.path.exists('fastq_filtrator_resuls'):
+        os.makedirs('fastq_filtrator_resuls')
+    with open('./fastq_filtrator_resuls/'+output_filename,'w') as out:
+        for key,val in filtered_dict.items():
+            string = '\n'.join(val)
+            out.write(f'{key}\n{string}\n')
