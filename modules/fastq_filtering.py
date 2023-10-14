@@ -22,7 +22,7 @@ def read_fastq(file):
         i+=4
     for index, line in enumerate(fasta_list):
         if index in inds:
-            dictionary[line.replace('\n', '')] = [fasta_list[index+1].replace('\n', ''), fasta_list[index+3].replace('\n', '')]
+            dictionary[line.replace('\n', '')] = [fasta_list[index+1].replace('\n', ''), fasta_list[index+2].replace('\n', ''), fasta_list[index+3].replace('\n', '')]
     return dictionary
 
 
@@ -72,7 +72,7 @@ def filter_quality_threshold(filtered_dict, key, quality_threshold):
             dictionary with only those sequences that have been filtered
     """
     threshold = 0
-    for nuc in filtered_dict[key][1]:
+    for nuc in filtered_dict[key][2]:
         threshold += int(DICT_TRESHOLD[ord(nuc)])
     mean_thresholds = threshold / len(filtered_dict[key][0])
     if mean_thresholds < quality_threshold:
