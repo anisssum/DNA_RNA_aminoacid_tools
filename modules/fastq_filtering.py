@@ -1,3 +1,4 @@
+import os
 DICT_TRESHOLD = {33: 0, 34: 1, 35: 2, 36: 3, 37: 4, 38: 5, 39: 6, 40: 7, 41: 8, 42: 9, 43: 10,
                  44: 11, 45: 12, 46: 13, 47: 14, 48: 15, 49: 16, 50: 17, 51: 18, 52: 19, 53: 20,
                  54: 21, 55: 22, 56: 23, 57: 24, 58: 25, 59: 26, 60: 27, 61: 28, 62: 29, 63: 30,
@@ -12,17 +13,17 @@ def read_fastq(file):
         Return:
             dictionary for main function's work
     """
-    with open(file) as fasta_file:
-        fasta_list = fasta_file.readlines()
+    with open(file) as fastq_file:
+        fastq_list = fastq_file.readlines()
     dictionary = {}
     inds=[]
     i=0
-    while i < len(fasta_list):
+    while i < len(fastq_list):
         inds.append(i)
         i+=4
-    for index, line in enumerate(fasta_list):
+    for index, line in enumerate(fastq_list):
         if index in inds:
-            dictionary[line.replace('\n', '')] = [fasta_list[index+1].replace('\n', ''), fasta_list[index+2].replace('\n', ''), fasta_list[index+3].replace('\n', '')]
+            dictionary[line.replace('\n', '')] = [fastq_list[index+1].replace('\n', ''), fastq_list[index+2].replace('\n', ''), fastq_list[index+3].replace('\n', '')]
     return dictionary
 
 
@@ -89,10 +90,9 @@ def save_fastq(filtered_dict, output_filename):
         Return:
             saves a file named output_filename to the fastq_filtrator_resuls folder and creates it if it does not exist
     """
-    import os
     if not os.path.exists('fastq_filtrator_resuls'):
         os.makedirs('fastq_filtrator_resuls')
-    with open('./fastq_filtrator_resuls/'+output_filename,'w') as out:
+    with open('./fastq_filtrator_resuls/'+output_filename+'.fastq','w') as out:
         for key,val in filtered_dict.items():
             string = '\n'.join(val)
             out.write(f'{key}\n{string}\n')
