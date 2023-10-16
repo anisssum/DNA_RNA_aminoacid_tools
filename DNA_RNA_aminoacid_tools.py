@@ -25,7 +25,7 @@ def filter_seqs(input_path: str, gc_bounds: tuple, length_bounds: tuple, quality
             It puts this file into the "fastq_filtrator_resuls" folder and creates it, if it does not exist.
             All described intervals include both upper and lower boundaries.
             Depending on the function being performed, the following returns will occur:
-                If the sequences in the dictionary are RNA, then there will be no filtering by gc composition.
+                If the sequences in the file are RNA, then there will be no filtering by gc composition.
                 If you supply a tuple of more than 2 values for the gc_bounds and length_bounds arguments,
                 you will receive the errors "Incorrect gc_bounds input" and "Incorrect length_bounds input" respectively.
     """
