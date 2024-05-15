@@ -1,7 +1,8 @@
 import os
+from dataclasses import dataclass
 
 
-def convert_multiline_fasta_to_oneline(input_fasta, output_fasta = ''):
+def convert_multiline_fasta_to_oneline(input_fasta: str, output_fasta = ''):
     """
     Performs functions to work with fasta file with DNA, RNA and protein sequences.
         Parameters:
@@ -14,7 +15,7 @@ def convert_multiline_fasta_to_oneline(input_fasta, output_fasta = ''):
     """
     d = {}
     if output_fasta == '':
-        output_fasta = input_fasta.split('/')[-1]
+        output_fasta = os.path.basename(input_fasta)
     with open(input_fasta,'r') as fasta_file:
         fasta_list = fasta_file.readlines()
     with open('out_'+output_fasta+'.fasta','w') as output_fasta:
@@ -24,13 +25,13 @@ def convert_multiline_fasta_to_oneline(input_fasta, output_fasta = ''):
                 output_fasta.write(fasta_list[i])
                 i+=1
             else:
-                y=i
+                j=i
                 string = ''
-                while y < len(fasta_list) and fasta_list[y][0] != '>':
-                    string = string+fasta_list[y].replace('\n', '')
-                    y+=1
+                while j < len(fasta_list) and fasta_list[j][0] != '>':
+                    string = string+fasta_list[j].replace('\n', '')
+                    j+=1
                 output_fasta.write(string+'\n')
-                i=y
+                i=j
 
 
 def select_genes_from_gbk_to_fasta(input_gbk: str, *genes: str, n_before = 1, n_after = 1, output_fasta = ''):
@@ -79,9 +80,62 @@ def select_genes_from_gbk_to_fasta(input_gbk: str, *genes: str, n_before = 1, n_
             end+=1
         seq = seq+gbk_list[end].split('"')[0].replace(' ', '')
         seqs.append(seq)
-    if output_fasta == '':
+    if not output_fasta:
         output_fasta = input_gbk.split('/')[-1]
     with open('out_'+output_fasta+'.fasta','w') as output_fasta:
         for n in range(len(new_genes)):
             output_fasta.write('>'+new_genes[n]+'\n')
             output_fasta.write(seqs[n]+'\n')
+
+
+@dataclass
+class FastaRecord:
+    id: str
+    description: str
+    sequence: str
+    def __repr__(self):
+        return f"FastaRecord(id='{self.id}', description='{self.description}', sequence='{self.sequence[:10]}...')"
+
+
+class OpenFasta:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.file = None
+
+    def __enter__(self):
+        self.file = open(self.file_path, 'r')
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.file:
+            self.file.close()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        record_id = None
+        description = None
+        sequence_lines = []
+        for line in self.file:
+            line = line.strip()
+            
+            if record_id:
+                sequence = ''.join(sequence_lines)
+                return FastaRecord(record_id, description, sequence)
+
+            if line.startswith('>'):
+                header = line[1:]
+                parts = header.split(' ', 1)
+                record_id = parts[0]
+                description = parts[1] if len(parts) > 1 else ''
+                sequence_lines = []
+            else:
+                sequence_lines.append(line)
+        raise StopIteration
+
+    def read_record(self):
+        return self.__next__()
+
+    def read_records(self):
+        return list(self)
