@@ -32,13 +32,13 @@ This script provides various functionalities for processing biological sequences
 
 This script provides functionalities to work with FASTA files containing DNA, RNA, and protein sequences. It includes the following functions:
 
-#### convert_multiline_fasta_to_oneline: Converts a FASTA file where each sequence spans multiple lines into a file where each sequence is on a single line.
+- convert_multiline_fasta_to_oneline: Converts a FASTA file where each sequence spans multiple lines into a file where each sequence is on a single line.
 
-#### select_genes_from_gbk_to_fasta: Selects a specified number of genes before and after each gene of interest from a GenBank (GBK) file and stores their protein sequences into a FASTA file.
+- select_genes_from_gbk_to_fasta: Selects a specified number of genes before and after each gene of interest from a GenBank (GBK) file and stores their protein sequences into a FASTA file.
 
-#### FastaRecord class: Defines a data class representing a FASTA record, containing an ID, description, and sequence.
+- FastaRecord class: Defines a data class representing a FASTA record, containing an ID, description, and sequence.
 
-#### OpenFasta class: Implements a context manager to open a FASTA file, iterate through its records, and read records.
+- OpenFasta class: Implements a context manager to open a FASTA file, iterate through its records, and read records.
 
 ### custom_random_forest
 
