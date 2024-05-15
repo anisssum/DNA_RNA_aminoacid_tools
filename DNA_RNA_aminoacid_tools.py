@@ -1,19 +1,43 @@
 import os
+import sys
+import datetime
+import traceback
+import requests
+import io
+from typing import List, Any
+from dataclasses import dataclass
+from dotenv import load_dotenv
 from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
+from bs4 import BeautifulSoup
 
-SHORT_CODE = ['A', 'R', 'N', 'D', 'C', 'E', 'Q', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'U', 'O',
-                'a', 'r', 'n', 'd', 'c', 'e', 'q', 'g', 'h', 'i', 'l', 'k', 'm', 'f', 'p', 's', 't', 'w', 'y', 'v', 'u', 'o']
-LONG_CODE = {'A': 'Ala', 'R': 'Arg', 'N': 'Asn', 'D': 'Asp', 'C': 'Cys', 'E': 'Glu', 'Q': 'Gln', 'G': 'Gly', 'H': 'His', 'I': 'Ile', 'L': 'Leu',
-            'K': 'Lys', 'M': 'Met', 'F': 'Phe', 'P': 'Pro', 'S': 'Ser', 'T': 'Thr', 'W': 'Trp', 'Y': 'Tyr', 'V': 'Val', 'U': 'Sec', 'O': 'Pyl',
-            'a': 'Ala', 'r': 'Arg', 'n': 'Asn', 'd': 'Asp', 'c': 'Cys', 'e': 'Glu', 'q': 'Gln', 'g': 'Gly', 'h': 'His', 'i': 'Ile', 'l': 'Leu',
-            'k': 'Lys', 'm': 'Met', 'f': 'Phe', 'p': 'Pro', 's': 'Ser', 't': 'Thr', 'w': 'Trp', 'y': 'Tyr', 'v': 'Val', 'u': 'Sec', 'o': 'Pyl'}
-MASS = {'A': 71.08, 'R': 156.2, 'N': 114.1, 'D': 115.1, 'C': 103.1, 'E': 129.1, 'Q': 128.1, 'G': 57.05, 'H': 137.1, 'I': 113.2, 'L': 113.2,
-        'K': 128.2, 'M': 131.2, 'F': 147.2, 'P': 97.12, 'S': 87.08, 'T': 101.1, 'W': 186.2, 'Y': 163.2, 'V': 99.13, 'U': 168.05, 'O': 255.3,
-        'a': 71.08, 'r': 156.2, 'n': 114.1, 'd': 115.1, 'c': 103.1, 'e': 129.1, 'q': 128.1, 'g': 57.05, 'h': 137.1, 'i': 113.2, 'l': 113.2,
-        'k': 128.2, 'm': 131.2, 'f': 147.2, 'p': 97.12, 's': 87.08, 't': 101.1, 'w': 186.2, 'y': 163.2, 'v': 99.13, 'u': 168.05, 'o': 255.3}
-DNA_COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'a': 't', 't': 'a', 'c': 'g', 'g': 'c'}
-RNA_COMPLEMENT = {'A': 'U', 'U': 'A', 'C': 'G', 'G': 'C', 'a': 'u', 'u': 'a', 'c': 'g', 'g': 'c'}
+
+SHORT_CODE = [
+    'A', 'R', 'N', 'D', 'C', 'E', 'Q', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'U', 'O',
+    'a', 'r', 'n', 'd', 'c', 'e', 'q', 'g', 'h', 'i', 'l', 'k', 'm', 'f', 'p', 's', 't', 'w', 'y', 'v', 'u', 'o'
+]
+
+LONG_CODE = {
+    'A': 'Ala', 'R': 'Arg', 'N': 'Asn', 'D': 'Asp', 'C': 'Cys', 'E': 'Glu', 'Q': 'Gln', 'G': 'Gly', 'H': 'His', 'I': 'Ile', 'L': 'Leu',
+    'K': 'Lys', 'M': 'Met', 'F': 'Phe', 'P': 'Pro', 'S': 'Ser', 'T': 'Thr', 'W': 'Trp', 'Y': 'Tyr', 'V': 'Val', 'U': 'Sec', 'O': 'Pyl',
+    'a': 'Ala', 'r': 'Arg', 'n': 'Asn', 'd': 'Asp', 'c': 'Cys', 'e': 'Glu', 'q': 'Gln', 'g': 'Gly', 'h': 'His', 'i': 'Ile', 'l': 'Leu',
+    'k': 'Lys', 'm': 'Met', 'f': 'Phe', 'p': 'Pro', 's': 'Ser', 't': 'Thr', 'w': 'Trp', 'y': 'Tyr', 'v': 'Val', 'u': 'Sec', 'o': 'Pyl'
+}
+
+MASS = {
+    'A': 71.08, 'R': 156.2, 'N': 114.1, 'D': 115.1, 'C': 103.1, 'E': 129.1, 'Q': 128.1, 'G': 57.05, 'H': 137.1, 'I': 113.2, 'L': 113.2,
+    'K': 128.2, 'M': 131.2, 'F': 147.2, 'P': 97.12, 'S': 87.08, 'T': 101.1, 'W': 186.2, 'Y': 163.2, 'V': 99.13, 'U': 168.05, 'O': 255.3,
+    'a': 71.08, 'r': 156.2, 'n': 114.1, 'd': 115.1, 'c': 103.1, 'e': 129.1, 'q': 128.1, 'g': 57.05, 'h': 137.1, 'i': 113.2, 'l': 113.2,
+    'k': 128.2, 'm': 131.2, 'f': 147.2, 'p': 97.12, 's': 87.08, 't': 101.1, 'w': 186.2, 'y': 163.2, 'v': 99.13, 'u': 168.05, 'o': 255.3
+}
+
+DNA_COMPLEMENT = {
+    'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'a': 't', 't': 'a', 'c': 'g', 'g': 'c'
+}
+
+RNA_COMPLEMENT = {
+    'A': 'U', 'U': 'A', 'C': 'G', 'G': 'C', 'a': 'u', 'u': 'a', 'c': 'g', 'g': 'c'
+}
 
 
 def molecular_weight(seq: str) -> float:
@@ -169,7 +193,7 @@ def reverse_complement(seq):
     return reverse_compl_seq
 
 
-def filter_fastq(input_path, gc_bounds=(0, 100), length_bounds=(0, 2**32), quality_threshold=0, output_filename=None):
+def filter_fastq(input_path, gc_bounds = (0, 100), length_bounds = (0, 2**32), quality_threshold = 0, output_filename = None):
     """
     Performs functions for working with fastq.
         Parameters:
@@ -378,3 +402,205 @@ class AminoAcidSequence(BiologicalSequence):
             return 'negative'
         else:
             return 'neutral'
+
+
+load_dotenv()
+TG_API_TOKEN = os.getenv("TG_API_TOKEN")
+
+
+def send_telegram_message(chat_id, text, file=None):
+    """
+    Sends a message to a Telegram chat.
+
+    Args:
+        chat_id (str): The ID of the Telegram chat where the message will be sent.
+        text (str): The text message to send.
+        file (file object, optional): A file to send as part of the message. Defaults to None.
+    """
+
+    url = f"https://api.telegram.org/bot{TG_API_TOKEN}/sendMessage"
+    data = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    response = requests.post(url, data=data)
+    if response.status_code != 200:
+        print(f"Error in Telegram: {response.status_code}")
+
+    if file:
+        url = f"https://api.telegram.org/bot{TG_API_TOKEN}/sendDocument"
+        files = {'document': file}
+        data = {
+            "chat_id": chat_id,
+        }
+        response = requests.post(url, data=data, files=files)
+        if response.status_code != 200:
+            print(f"Error in Telegram: {response.status_code}")
+
+
+def telegram_logger(chat_id):
+    """
+    Decorator that logs the execution of the decorated function and sends a Telegram message.
+
+    Args:
+        chat_id (str): The ID of the Telegram chat where the message will be sent.
+
+    Returns:
+        function: Decorator function.
+    """
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start_time = datetime.datetime.now()
+            func_name = func.__name__
+            stdout_buffer = io.StringIO()
+            stderr_buffer = io.StringIO()
+            sys.stdout = stdout_buffer
+            sys.stderr = stderr_buffer
+
+            try:
+                result = func(*args, **kwargs)
+                end_time = datetime.datetime.now()
+                time_taken = end_time - start_time
+                duration_str = str(time_taken).split(".")[0]
+
+                stdout_buffer.seek(0)
+                stderr_buffer.seek(0)
+                stdout_text = stdout_buffer.read()
+                stderr_text = stderr_buffer.read()
+
+                message = f"Function '{func_name}' completed successfully in {duration_str}.\n"
+                send_telegram_message(chat_id, message)
+
+                if stdout_text or stderr_text:
+                    log_filename = f"{func_name}.log"
+                    with open(log_filename, "w") as f:
+                        f.write(stdout_text)
+                        f.write(stderr_text)
+                    with open(log_filename, "rb") as f:
+                        send_telegram_message(chat_id, "", file=f)
+                return result
+
+            except Exception as e:
+                end_time = datetime.datetime.now()
+                time_taken = end_time - start_time
+                duration_str = str(time_taken).split(".")[0]
+
+                stdout_buffer.seek(0)
+                stderr_buffer.seek(0)
+                stdout_text = stdout_buffer.read()
+                stderr_text = stderr_buffer.read()
+
+                error_type = type(e).__name__
+                error_message = str(e)
+                error_traceback = traceback.format_exc()
+
+                message = f"Function '{func_name}' failed with error: {error_type}: {error_message}\n"
+                send_telegram_message(chat_id, message)
+
+                message = f"Traceback:\n{error_traceback}\n"
+                send_telegram_message(chat_id, message)
+
+                if stdout_text or stderr_text:
+                    log_filename = f"{func_name}.log"
+                    with open(log_filename, "w") as f:
+                        f.write(stdout_text)
+                        f.write(stderr_text)
+                    with open(log_filename, "rb") as f:
+                        send_telegram_message(chat_id, "", file=f)
+
+                raise e
+            finally:
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
+        return wrapper
+    return decorator
+
+
+@dataclass
+class GenscanOutput:
+    """
+    Represents the output of the GENSCAN analysis.
+
+    Attributes:
+    - status: str: The status of the analysis, either "Successful" or "Failed".
+    - cds_list: List[str]: List of predicted peptide sequences.
+    - intron_list: List[Any]: List of found introns, where each element is a list containing intron information.
+    - exon_list: List[Any]: List of found exons, where each element is a list containing exon information.
+    """
+
+    status: str
+    cds_list: List[str]
+    intron_list: List[Any]
+    exon_list: List[Any]
+
+
+def run_genscan(sequence=None, sequence_file=None, organism="Vertebrate", exon_cutoff=1.00, sequence_name="") -> GenscanOutput:
+    """
+    Executes a GENSCAN analysis by making a request similar to filling out the form on the website.
+    Accepts all parameters that can be specified on the website (except Print options).
+
+    Args:
+    - sequence: str, optional: The sequence as a string or any convenient data type.
+    - sequence_file: str, optional: The path to the file containing the sequence, which can be uploaded and used instead of the sequence.
+    - organism: str, optional: The organism type for the analysis. Default is "Vertebrate".
+    - exon_cutoff: float, optional: The exon probability cutoff. Default is 1.00.
+    - sequence_name: str, optional: The name of the sequence. Default is an empty string.
+
+    Returns:
+    - GenscanOutput: An object containing the analysis output.
+
+    Raises:
+    - ValueError: If neither sequence nor sequence_file is provided.
+    """
+
+    data = {
+        '-n': sequence_name,
+        '-o': organism,
+        '-e': str(exon_cutoff),
+        '-p': 'Predicted peptides only'
+    }
+
+    if sequence:
+        data["-s"] = sequence
+    elif sequence_file:
+        with open(sequence_file, 'r') as file:
+            sequence_data = file.read()
+        data["-s"] = sequence_data
+    else:
+        raise ValueError("Neither sequence nor sequence_file provided")
+
+    response = requests.post('http://hollywood.mit.edu/cgi-bin/genscanw_py.cgi', data=data)
+    soup = BeautifulSoup(response.content, "html.parser")
+    status = "Successful" if soup.find('h2').text.strip() == 'GENSCAN Output' else "Failed"
+    cds_list = []
+    intron_list = []
+    exon_list = []
+    lines = soup.prettify().split('\n')
+    for i, line in enumerate(lines):
+        if 'GENSCAN_predicted_peptide' in line:
+            peptide = ""
+            for j in range(i+1, i+(int(line.strip().split('|')[-1].split('_')[0])//60)+1):
+                peptide = peptide + lines[j]
+            cds_list.append(peptide)
+
+        if line.strip() and line.strip()[0].isdigit():
+            parts = line.strip().split()
+            if parts[1] in ('Intr', 'Init', 'Term', 'Sngl'):
+                if parts[2] == '+':
+                    exon_list.append([parts[0], int(parts[3]), int(parts[4])])
+                else:
+                    exon_list = [[parts[0], int(parts[4]), int(parts[3])]] + exon_list
+
+    exon_num = len(exon_list)
+    if exon_num > 1:
+        for j in range(exon_num-1):
+            if exon_list[j][0][0] == exon_list[j+1][0][0] and exon_list[j][2] != exon_list[j+1][1]:
+                intron_list.append([exon_list[j][0], exon_list[j][2] + 1, exon_list[j+1][1] - 1])
+
+    if not exon_list:
+        exon_list.append("empty")
+    if not intron_list:
+        intron_list.append("empty")
+
+    return GenscanOutput(status, cds_list, intron_list, exon_list)
